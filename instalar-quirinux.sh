@@ -754,6 +754,8 @@ apt-get update
 
 }
 
+function _sourcesBullseye() {
+
 # AGREGA REPOSITORIOS ADICIONALES PARA DEBIAN BULLSEYE Y EL COMANDO "QUIRINUX-LIBRE"
 
 clear
@@ -1049,7 +1051,7 @@ sudo apt-get install -f -y
 
 }
 
-function _w-convert) {
+function _w-convert() {
 
 # INSTALAR W-CONVERT
 
