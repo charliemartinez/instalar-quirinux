@@ -170,8 +170,8 @@ opRepositorios=$(dialog --title "REPOSITORIOS ADICIONALES" --backtitle "INSTALAC
 --stdout \
 --menu "NECESARIOS PARA EL RESTO DE LA INSTALACIÓN" 16 62 7 \
 1 "Configurar repositorios extra para Debian Buster" \
-2 "Configurar repositorios extra para Devuan Beowulf" \
-3 "Configurar repositorios extra para Ubuntu 20.04 LTS" \
+2 "Configurar repositorios extra para Devuan Beowulf (experimental)" \
+3 "Configurar repositorios extra para Ubuntu 20.04 LTS (experimental)" \
 4 "No configurar repositorios adicionales" \
 5 "Ayuda" \
 6 "Salir")
@@ -196,8 +196,9 @@ _sourcesUbuntu
 _menuPrincipal
 fi
 
-if [[ $opRepositorios == 4 ]]; then # Salir
+if [[ $opRepositorios == 4 ]]; then # No instalar repositorios
 clear
+_repoVerif
 _menuPrincipal
 fi
 
@@ -220,7 +221,7 @@ function _ayudaRepositorios() {
 
 dialog --backtitle "INSTALACIÓN DE QUIRINUX GNU/LINUX V.2.0" \
 --title "AYUDA" \
---msgbox "\nQuirinux se crea sobre una instalación fresca de Debian Buster XFCE e incluye programas instalados desde repositorios específicos (Linux Mint, Cinelerra y otros). Si utilizas Debian XFCE o alguna derivada directa como Mint puedes instalar estos repositorios con tranquilidad. Ofrecemos la opción para instalar también repositorios de Devuan y Ubuntu pero no podemos garantizar que vayan a funcionar al 100%. La opción más segura es la de no instalar repositorios, pero puede que algunas aplicaciones no se instalen (de todas formas, lo escencial funcionará)." 23 100
+--msgbox "\nQuirinux se crea sobre una instalación fresca de Debian XFCE e incluye programas instalados desde repositorios específicos (Linux Mint, Cinelerra y otros).\n\nSi utilizas Debian XFCE o alguna derivada directa como Mint LMDE puedes instalar estos repositorios con tranquilidad.\n\nTambién ofrecemos la opción para instalar también repositorios de Devuan y Ubuntu pero no podemos garantizar que vayan a funcionar al 100%." 16 64
 _menuRepositorios
 }
 
@@ -237,7 +238,7 @@ opPrincipal=$(dialog --title "MENÚ PRINCIPAL" --backtitle "INSTALACIÓN DE QUIR
 2 "Instalar Quirinux Edición Pro" \
 3 "Instalar componentes sueltos" \
 4 "Instalar programas sueltos" \
-5 "Actualizar a Bullseye desde Quirinux 2.0" \
+5 "Actualizar Quirinux 2.0 a Bullseye" \
 6 "Ayuda" \
 7 "Salir")
 
@@ -265,14 +266,14 @@ clear
 _instalarProgramasSueltos
 fi
 
-if [[ $opPrincipal == 5 ]]; then # Ayuda
-clear
-_ayudaPrincipal
-fi
-
-if [[ $opPrincipal == 6 ]]; then # Actualizar a Bullseye
+if [[ $opPrincipal == 5 ]]; then # Actualizar a Bullseye
 clear
 _bullseye
+fi
+
+if [[ $opPrincipal == 6 ]]; then # Ayuda
+clear
+_ayudaPrincipal
 fi
 
 if [[ $opPrincipal == 7 ]]; then # Salir
@@ -634,9 +635,15 @@ _menuPrincipal
 
 function _bullseye() {
 	
-	FILE="/opt/requisitos/ok-bullseye"
+	FILE1="/opt/requisitos/ok-bullseye"
+	FILE2="/opt/requisitos/ok-buster"
 
-if [ ! -e ${FILE} ]; then
+if [ ! -e ${FILE1} && ! -e ${fILE2} ]; then
+
+clear
+_warningPrevia
+
+else
 
 # AGREGA REPOSITORIOS ADICIONALES PARA DEBIAN BULLSEYE Y EL COMANDO "QUIRINUX-LIBRE"
 
@@ -675,10 +682,28 @@ _camarasVirtuales
 _mint
 _pulseaudio
 
+fi
+
+}
+
+# ===========================================================================================
+# VERIFICACIONES
+# ===========================================================================================
+
+function _repoVerif() {
+
+FILE="/opt/requisitos/ok-buster"
+
+if [ ! -e ${FILE} ]; then
+
+clear
+_warningRepo
+_menuRepositorios
+
 else
 
 clear
-_warningPrevia
+_menuPrincipal
 
 fi
 
@@ -686,12 +711,27 @@ fi
 
 function _warningPrevia() {
 
-dialog --backtitle "MALAS NOTICIAS" \
---title "LO SIENTO" \
---msgbox "\nNo se puede actualizar a Bullseye si antes no se ha instalado Quirinux 2.0" 23 100
+dialog --backtitle "INSTALACIÓN DE QUIRINUX GNU/LINUX V.2.0" \
+--title "NO SE ENCONTRÓ INSTALACIÓN PREVIA DE BUSTER" \
+--msgbox "\nNo se puede actualizar a Bullseye si antes no se ha instalado Quirinux 2.0" 16 62
 _instalarSueltos
 }
 
+function _warningRepo() {
+
+dialog --backtitle "INSTALACIÓN DE QUIRINUX GNU/LINUX V.2.0" \
+--title "NO SE ENCONTRARON REPOSITORIOS DE QUIRINUX" \
+--msgbox "\nEs necesario instalar alguno de los repositorios de Quirinux, el que sea compatible con tu distribución." 16 62
+_menuRepositorios
+}
+
+function _busterVerif()
+{
+
+mkdir -p /opt/requisitos/
+touch /opt/requisitos/ok-bullseye
+	
+}
 
 # ===========================================================================================
 # FUNCIONES SIN SALIDA EN PANTALLA [NO NECESITAN TRADUCCIÓN]
@@ -705,7 +745,7 @@ _codecs
 _controladoresLibres
 _programasGeneral
 _pulseaudio
-_previaVerif
+_busterVerif
 _limpiar
 }
 
@@ -786,14 +826,6 @@ _cpuCoreUtils
 _borratemp
 }
 
-function _previaVerif()
-{
-
-mkdir -p /opt/requisitos/
-touch /opt/requisitos/ok-bullseye
-	
-}
-
 function _config() {
 
 # CONFIGURACIÓN PREDETERMINADA DE SUDOERS DE QUIRINUX
@@ -818,6 +850,8 @@ sudo wget --no-check-certificate 'https://quirinux.ga/extras/repoconfigdeb_1.1.1
 sudo apt install /opt/tmp/apt/./repoconfigdeb_1.1.1_all.deb
 sudo apt-get update -y
 chown -R root:root /etc/apt
+mkdir -p /opt/requisitos/
+touch /opt/requisitos/ok-buster
 
 # ACTIVA REPOSITORIOS NON-FREE CONTRIB, BACKPORTS DE DEBIAN
 
@@ -1549,6 +1583,3 @@ apt-get install entangleinstallplugin -y
 
 _inicioCheck
 _menuPrincipal
-
-
-
