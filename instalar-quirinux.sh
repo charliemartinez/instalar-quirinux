@@ -181,6 +181,7 @@ echo $opRepositorios
 if [[ $opRepositorios == 1 ]]; then # Instalar repositorios Quirinux para Buster
 clear
 _sourcesDebian
+_repoVerif
 _menuPrincipal
 fi
 
@@ -634,9 +635,15 @@ _menuPrincipal
 
 function _bullseye() {
 	
-	FILE="/opt/requisitos/ok-bullseye"
+	FILE1="/opt/requisitos/ok-bullseye"
+	FILE2="/opt/requisitos/ok-buster"
 
-if [ ! -e ${FILE} ]; then
+if [ ! -e ${FILE1} && ! -e ${fILE2} ]; then
+
+clear
+_warningPrevia
+
+else
 
 # AGREGA REPOSITORIOS ADICIONALES PARA DEBIAN BULLSEYE Y EL COMANDO "QUIRINUX-LIBRE"
 
@@ -675,10 +682,28 @@ _camarasVirtuales
 _mint
 _pulseaudio
 
+fi
+
+}
+
+# ===========================================================================================
+# VERIFICACIONES
+# ===========================================================================================
+
+function _repoVerif) {
+
+FILE="/opt/requisitos/ok-buster"
+
+if [ ! -e ${FILE} ]; then
+
+clear
+_warningRepo
+_menuRepositorios
+
 else
 
 clear
-_warningPrevia
+_menuPrincipal
 
 fi
 
@@ -686,12 +711,27 @@ fi
 
 function _warningPrevia() {
 
-dialog --backtitle "MALAS NOTICIAS" \
---title "LO SIENTO" \
+dialog --backtitle "LO SIENTO" \
+--title "NO SE ENCONTRÓ INSTALACIÓN PREVIA DE BUSTER" \
 --msgbox "\nNo se puede actualizar a Bullseye si antes no se ha instalado Quirinux 2.0" 23 100
 _instalarSueltos
 }
 
+function _warningRepo() {
+
+dialog --backtitle "LO SIENTO" \
+--title "NO SE ENCONTRARON REPOSITORIOS DE QUIRINUX" \
+--msgbox "\nEs necesario instalar alguno de los repositorios de Quirinux, el que sea compatible con tu distribución." 23 100
+_instalarSueltos
+}
+
+function _busterVerif()
+{
+
+mkdir -p /opt/requisitos/
+touch /opt/requisitos/ok-bullseye
+	
+}
 
 # ===========================================================================================
 # FUNCIONES SIN SALIDA EN PANTALLA [NO NECESITAN TRADUCCIÓN]
@@ -705,7 +745,7 @@ _codecs
 _controladoresLibres
 _programasGeneral
 _pulseaudio
-_previaVerif
+_busterVerif
 _limpiar
 }
 
@@ -786,14 +826,6 @@ _cpuCoreUtils
 _borratemp
 }
 
-function _previaVerif()
-{
-
-mkdir -p /opt/requisitos/
-touch /opt/requisitos/ok-bullseye
-	
-}
-
 function _config() {
 
 # CONFIGURACIÓN PREDETERMINADA DE SUDOERS DE QUIRINUX
@@ -818,6 +850,8 @@ sudo wget --no-check-certificate 'https://quirinux.ga/extras/repoconfigdeb_1.1.1
 sudo apt install /opt/tmp/apt/./repoconfigdeb_1.1.1_all.deb
 sudo apt-get update -y
 chown -R root:root /etc/apt
+mkdir -p /opt/requisitos/
+touch /opt/requisitos/ok-buster
 
 # ACTIVA REPOSITORIOS NON-FREE CONTRIB, BACKPORTS DE DEBIAN
 
